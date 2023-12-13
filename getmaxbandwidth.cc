@@ -3,8 +3,6 @@
 #include <stdexcept>
 #include <array>
 #include <string>
-#include <chrono>
-#include <thread>
 
 std::string exec(const char* cmd) {
     std::array<char, 128> buffer;
@@ -24,31 +22,30 @@ std::string getDefaultInterface() {
     return commandOutput;
 }
 
-long getInterfaceRxBytes(const std::string& interface) {
-    std::string command = "cat /sys/class/net/" + interface + "/statistics/rx_bytes";
-    std::string result = exec(command.c_str());
-    return std::stol(result);
-}
-
-double GetMaxBandwidth() {
+double getMaxBandwidth() {
     std::string interface = getDefaultInterface();
-    long initialBytes = getInterfaceRxBytes(interface);
+    std::string command = "ethtool " + interface + " | grep Speed | awk '{print $2}'";
+    std::string result = exec(command.c_str());
 
-    // Measure for a short period
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    if (result.empty()) {
+        throw std::runtime_error("Failed to get network speed.");
+    }
 
-    long finalBytes = getInterfaceRxBytes(interface);
-    long bytesPerSecond = finalBytes - initialBytes;
+    // Assuming the result is something like "1000Mb/s"
+    size_t mbpsPos = result.find("Mb/s");
+    if (mbpsPos == std::string::npos) {
+        throw std::runtime_error("Unexpected format of network speed.");
+    }
 
-    // Convert bytes per second to megabits per second
-    double bandwidthMbps = (bytesPerSecond * 8) / 1e6;
-    return bandwidthMbps;
+    std::string speedStr = result.substr(0, mbpsPos);
+    double speedMbps = std::stod(speedStr);
+    return speedMbps;
 }
 
 int main() {
     try {
-        double bandwidth = GetMaxBandwidth();
-        std::cout << "Estimated Max Bandwidth: " << bandwidth << " Mbps" << std::endl;
+        double maxBandwidth = getMaxBandwidth();
+        std::cout << "Maximum Bandwidth: " << maxBandwidth << " Mbps" << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }

@@ -1,7 +1,8 @@
 #include <iostream>
-#include <memory>
+#include <fstream>
 #include <stdexcept>
 #include <array>
+#include <memory>
 #include <string>
 
 std::string exec(const char* cmd) {
@@ -19,35 +20,38 @@ std::string exec(const char* cmd) {
 
 std::string getDefaultInterface() {
     std::string commandOutput = exec("ip route | grep default | awk '{print $5}'");
+    if (commandOutput.empty()) {
+        throw std::runtime_error("Default network interface not found.");
+    }
+    commandOutput.pop_back(); // Remove the newline character at the end
     return commandOutput;
 }
 
 double getMaxBandwidth() {
     std::string interface = getDefaultInterface();
-    std::string command = "ethtool " + interface + " | grep Speed | awk '{print $2}'";
-    std::string result = exec(command.c_str());
+    std::string filePath = "/sys/class/net/" + interface + "/speed";
 
-    if (result.empty()) {
-        throw std::runtime_error("Failed to get network speed.");
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file: " + filePath);
     }
 
-    // Assuming the result is something like "1000Mb/s"
-    size_t mbpsPos = result.find("Mb/s");
-    if (mbpsPos == std::string::npos) {
-        throw std::runtime_error("Unexpected format of network speed.");
+    double speed;
+    file >> speed;
+    if (file.fail()) {
+        throw std::runtime_error("Failed to read speed from file: " + filePath);
     }
 
-    std::string speedStr = result.substr(0, mbpsPos);
-    double speedMbps = std::stod(speedStr);
-    return speedMbps;
+    return speed; // Speed is in Mbps
 }
 
 int main() {
     try {
         double maxBandwidth = getMaxBandwidth();
-        std::cout << "Maximum Bandwidth: " << maxBandwidth << " Mbps" << std::endl;
+        std::cout << "Maximum Bandwidth of " << getDefaultInterface() << ": " << maxBandwidth << " Mbps" << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
     }
     return 0;
 }

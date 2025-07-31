@@ -1,5 +1,6 @@
 # Create container with this image 
-swr.cn-southwest-2.myhuaweicloud.com/modelfoundry/dev_images/h00874875/ubuntu:30a87d4
+
+# swr.cn-southwest-2.myhuaweicloud.com/modelfoundry/dev_images/h00874875/ubuntu:30a87d4
 
 Set mount path to huafengchun and use large memory
 <img width="1320" height="1606" alt="image" src="https://github.com/user-attachments/assets/e856c26c-cbf3-4a3f-887e-8bdc75cf4246" />

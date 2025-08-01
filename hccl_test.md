@@ -171,3 +171,9 @@ genrule(
 
 ```
 
+
+Solution for `OSError: /home/huafengchun/miniconda3/envs/myenv/bin/../lib/libstdc++.so.6: version GLIBCXX_3.4.30' not found (required by /home/huafengchun/ray/python/ray/_raylet.so)`
+
+```
+conda install -c conda-forge libstdcxx-ng=12
+```

@@ -132,7 +132,7 @@ if __name__ == "__main__":
 # Sub-Optimal but Faster via `np.histogram` Bucketing + Greedy Merging
 
 ## Motivation
-The exact DP for **Problem A** is optimal but costs `O(Bmax * N^2)`.  
+The exact DP for **Problem** is optimal but costs `O(Bmax * N^2)`.  
 When `N` is large (millions) you may prefer a **histogram-based approximation**:
 
 1) **Bucket** lengths into adjacent ranges (bins) so items in a bin have similar lengths.  

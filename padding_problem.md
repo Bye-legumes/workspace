@@ -412,7 +412,7 @@ if __name__ == "__main__":
     for b in batches:
         print(b["count"], b["sum"], b["max"], [b["left_idx"], b["right_idx"]])
 ```
-## Comparis  Test:
+## Comparision  Test:
 ```python
 
 import random

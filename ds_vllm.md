@@ -25,24 +25,27 @@ export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64/:$LD_LIBRARY_PATH
 export MASTER_ADDR=10.10.100.178
 export NUM_NODES=2
 export GPUS_PER_NODE=8
-export NODE_RANK=1
+export NODE_RANK=0
 export GLOO_SOCKET_IFNAME=bond0
 export NCCL_SOCKET_IFNAME=ib4
 
-ray start --address='10.10.100.178:6479'
+ray start --head --port 6479
+
 ```
 
 On another machine, start ray
 ```
 export VLLM_USE_DEEP_GEMM=0
-export MASTER_ADDR=10.10.100.105
-export NUM_NODES=4
+export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib/python3.11/site-packages/torch/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64/:$LD_LIBRARY_PATH
+export MASTER_ADDR=10.10.100.178
+export NUM_NODES=2
 export GPUS_PER_NODE=8
-export NODE_RANK=2
+export NODE_RANK=1
 export GLOO_SOCKET_IFNAME=bond0
-export NCCL_SOCKET_IFNAME=ib0
+export NCCL_SOCKET_IFNAME=ib4
 
-ray start --address='10.10.100.105:6379'
+ray start --address='10.10.100.178:6479'
 ```
 
 then start load model

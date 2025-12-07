@@ -17,6 +17,10 @@ python3 -c "import vllm; print(vllm.__version__)"
 uv pip install --force-reinstall --no-cache-dir --no-build-isolation git+https://github.com/deepseek-ai/DeepGEMM.git@v2.1.1.post3
 ```
 
+
+try ```export VLLM_USE_DEEP_GEMM=1
+``` first, if it failed, try `export VLLM_USE_DEEP_GEMM=0`
+
 On one machine, start ray head
 ```
 export VLLM_USE_DEEP_GEMM=0

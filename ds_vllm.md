@@ -1,20 +1,46 @@
+start docker
+```
+sudo usermod -aG docker $USER
+newgrp docker
+docker create \
+  --gpus all \
+  --net=host \
+  --shm-size=200g \
+  --cap-add=SYS_ADMIN \
+  -v /shared_workspace_mfs:/shared_workspace_mfs \
+  -v /home/original_models:/home/original_models \
+  --name verl \
+  --entrypoint bash \
+  verlai/verl:base-verl0.6-cu128-cudnn9.8-torch2.8.0-fa2.7.4 \
+  -c "while true; do sleep 3600; done"
+
+docker start verl
+
+docker exec -it verl bash
+
+```
+change `vim ~/.config/pip/pip.conf`
+
+```
+
+[global]
+index-url = https://pypi.org/simple
+extra-index-url = https://wheels.vllm.ai/nightly
+no-cache-dir = true
+```
+
+
 set up uv on every machine
 ```
-pkill -9 -f python
-pkill -9 -f VLLM
+wget -qO- https://astral.sh/uv/install.sh | sh
 bash /shared_workspace_mfs/zhilong/set_uv.sh
 source ~/uv_env/bin/activate
 
 export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib/python3.11/site-packages/torch/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64/:$LD_LIBRARY_PATH
-uv pip uninstall vllm
+export PYTHONPATH=/shared_workspace_mfs/zhilong/DeepGEMM:$PYTHONPATH
+
+
 uv pip install vllm --extra-index-url https://wheels.vllm.ai/nightly
-
-
-python3 -c "import vllm; print(vllm.__version__)"
-
-
-uv pip install --force-reinstall --no-cache-dir --no-build-isolation git+https://github.com/deepseek-ai/DeepGEMM.git@v2.1.1.post3
 ```
 
 
@@ -23,10 +49,9 @@ try ```export VLLM_USE_DEEP_GEMM=1
 
 On one machine, start ray head
 ```
-export VLLM_USE_DEEP_GEMM=0
 export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib/python3.11/site-packages/torch/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64/:$LD_LIBRARY_PATH
-export MASTER_ADDR=10.10.100.178
+export PYTHONPATH=/shared_workspace_mfs/zhilong/DeepGEMM:$PYTHONPATH
+export MASTER_ADDR=10.10.100.90
 export NUM_NODES=2
 export GPUS_PER_NODE=8
 export NODE_RANK=0
@@ -39,17 +64,16 @@ ray start --head --port 6479
 
 On another machine, start ray
 ```
-export VLLM_USE_DEEP_GEMM=0
 export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib/python3.11/site-packages/torch/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64/:$LD_LIBRARY_PATH
-export MASTER_ADDR=10.10.100.178
+export PYTHONPATH=/shared_workspace_mfs/zhilong/DeepGEMM:$PYTHONPATH
+export MASTER_ADDR=10.10.100.90
 export NUM_NODES=2
 export GPUS_PER_NODE=8
 export NODE_RANK=1
 export GLOO_SOCKET_IFNAME=bond0
 export NCCL_SOCKET_IFNAME=ib4
 
-ray start --address='10.10.100.178:6479'
+ray start --address='10.10.100.90:6479'
 ```
 
 then start load model
